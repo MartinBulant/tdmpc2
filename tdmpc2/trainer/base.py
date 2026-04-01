@@ -1,3 +1,7 @@
+import logging
+
+LOG = logging.getLogger(__name__)
+
 class Trainer:
 	"""Base trainer class for TD-MPC2."""
 
@@ -7,7 +11,7 @@ class Trainer:
 		self.agent = agent
 		self.buffer = buffer
 		self.logger = logger
-		print('Architecture:', self.agent.model)
+		LOG.info("Architecture:", self.agent.model)
 
 	def eval(self):
 		"""Evaluate a TD-MPC2 agent."""

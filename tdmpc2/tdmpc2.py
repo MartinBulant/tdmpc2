@@ -1,5 +1,7 @@
 import torch
 import torch.nn.functional as F
+import logging
+
 
 from common import math
 from common.scale import RunningScale
@@ -7,6 +9,7 @@ from common.world_model import WorldModel
 from common.layers import api_model_conversion
 from tensordict import TensorDict
 
+LOG = logging.getLogger(__name__)
 
 class TDMPC2(torch.nn.Module):
 	"""
@@ -36,11 +39,11 @@ class TDMPC2(torch.nn.Module):
 		self.discount = torch.tensor(
 			[self._get_discount(ep_len) for ep_len in cfg.episode_lengths], device='cuda:0'
 		) if self.cfg.multitask else self._get_discount(cfg.episode_length)
-		print('Episode length:', cfg.episode_length)
-		print('Discount factor:', self.discount)
+		LOG.info('Episode length:', cfg.episode_length)
+		LOG.info('Discount factor:', self.discount)
 		self._prev_mean = torch.nn.Buffer(torch.zeros(self.cfg.horizon, self.cfg.action_dim, device=self.device))
 		if cfg.compile:
-			print('Compiling update function with torch.compile...')
+			LOG.info('Compiling update function with torch.compile...')
 			self._update = torch.compile(self._update, mode="reduce-overhead")
 
 	@property

@@ -1,14 +1,15 @@
-import dataclasses
 import os
-import datetime
 import re
-
+import logging
+import datetime
+import dataclasses
 import numpy as np
 import pandas as pd
-from termcolor import colored
 
+from termcolor import colored
 from common import TASK_SET
 
+LOG = logging.getLogger(__name__)
 
 CONSOLE_FORMAT = [
 	("iteration", "I", "int"),
@@ -46,7 +47,7 @@ def print_run(cfg):
 		return str(s[:maxlen]) + "..." if len(str(s)) > maxlen else s
 
 	def _pprint(k, v):
-		print(
+		LOG.info(
 			prefix + colored(f'{k.capitalize()+":":<15}', color, attrs=attrs), _limstr(v)
 		)
 
@@ -60,10 +61,10 @@ def print_run(cfg):
 	]
 	w = np.max([len(_limstr(str(kv[1]))) for kv in kvs]) + 25
 	div = "-" * w
-	print(div)
+	LOG.info(div)
 	for k, v in kvs:
 		_pprint(k, v)
-	print(div)
+	LOG.info(div)
 
 
 def cfg_to_group(cfg, return_list=False):
@@ -118,7 +119,7 @@ class Logger:
 		self.project = cfg.get("wandb_project", "none")
 		self.entity = cfg.get("wandb_entity", "none")
 		if not cfg.enable_wandb or self.project == "none" or self.entity == "none":
-			print(colored("Wandb disabled.", "blue", attrs=["bold"]))
+			LOG.info(colored("Wandb disabled.", "blue", attrs=["bold"]))
 			cfg.save_agent = False
 			cfg.save_video = False
 			self._wandb = None
@@ -136,7 +137,7 @@ class Logger:
 			dir=self._log_dir,
 			config=dataclasses.asdict(cfg),
 		)
-		print(colored("Logs will be synced with wandb.", "blue", attrs=["bold"]))
+		LOG.info(colored("Logs will be synced with wandb.", "blue", attrs=["bold"]))
 		self._wandb = wandb
 		self._video = (
 			VideoRecorder(cfg, self._wandb)
@@ -168,7 +169,7 @@ class Logger:
 		try:
 			self.save_agent(agent)
 		except Exception as e:
-			print(colored(f"Failed to save model: {e}", "red"))
+			LOG.error(colored(f"Failed to save model: {e}", "red"))
 		if self._wandb:
 			self._wandb.finish()
 
@@ -189,11 +190,11 @@ class Logger:
 		for k, disp_k, ty in CONSOLE_FORMAT:
 			if k in d:
 				pieces.append(f"{self._format(disp_k, d[k], ty):<22}")
-		print("   ".join(pieces))
+		LOG.info("   ".join(pieces))
 
 	def pprint_multitask(self, d, cfg):
 		"""Pretty-print evaluation metrics for multi-task training."""
-		print(colored(f'Evaluated agent on {len(cfg.tasks)} tasks:', 'yellow', attrs=['bold']))
+		LOG.info(colored(f'Evaluated agent on {len(cfg.tasks)} tasks:', 'yellow', attrs=['bold']))
 		dmcontrol_reward = []
 		metaworld_reward = []
 		metaworld_success = []
@@ -203,23 +204,23 @@ class Logger:
 			task = k.split('+')[1]
 			if task in TASK_SET['mt30'] and k.startswith('episode_reward'): # DMControl
 				dmcontrol_reward.append(v)
-				print(colored(f'  {task:<22}\tR: {v:.01f}', 'yellow'))
+				LOG.info(colored(f'  {task:<22}\tR: {v:.01f}', 'yellow'))
 			elif task in TASK_SET['mt80'] and task not in TASK_SET['mt30']: # Meta-World
 				if k.startswith('episode_reward'):
 					metaworld_reward.append(v)
 				elif k.startswith('episode_success'):
 					metaworld_success.append(v)
-					print(colored(f'  {task:<22}\tS: {v:.02f}', 'yellow'))
+					LOG.info(colored(f'  {task:<22}\tS: {v:.02f}', 'yellow'))
 		dmcontrol_reward = np.nanmean(dmcontrol_reward)
 		d['episode_reward+avg_dmcontrol'] = dmcontrol_reward
-		print(colored(f'  {"dmcontrol":<22}\tR: {dmcontrol_reward:.01f}', 'yellow', attrs=['bold']))
+		LOG.info(colored(f'  {"dmcontrol":<22}\tR: {dmcontrol_reward:.01f}', 'yellow', attrs=['bold']))
 		if cfg.task == 'mt80':
 			metaworld_reward = np.nanmean(metaworld_reward)
 			metaworld_success = np.nanmean(metaworld_success)
 			d['episode_reward+avg_metaworld'] = metaworld_reward
 			d['episode_success+avg_metaworld'] = metaworld_success
-			print(colored(f'  {"metaworld":<22}\tR: {metaworld_reward:.01f}', 'yellow', attrs=['bold']))
-			print(colored(f'  {"metaworld":<22}\tS: {metaworld_success:.02f}', 'yellow', attrs=['bold']))
+			LOG.info(colored(f'  {"metaworld":<22}\tR: {metaworld_reward:.01f}', 'yellow', attrs=['bold']))
+			LOG.info(colored(f'  {"metaworld":<22}\tS: {metaworld_success:.02f}', 'yellow', attrs=['bold']))
 
 	def log(self, d, category="train"):
 		assert category in CAT_TO_COLOR.keys(), f"invalid category: {category}"

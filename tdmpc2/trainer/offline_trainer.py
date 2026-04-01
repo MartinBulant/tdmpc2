@@ -1,4 +1,5 @@
 import os
+import logging
 from copy import deepcopy
 from time import time
 from pathlib import Path
@@ -11,6 +12,7 @@ from tqdm import tqdm
 from common.buffer import Buffer
 from trainer.base import Trainer
 
+LOG = logging.getLogger(__name__)
 
 class OfflineTrainer(Trainer):
 	"""Trainer class for multi-task offline TD-MPC2 training."""
@@ -44,9 +46,9 @@ class OfflineTrainer(Trainer):
 		fp = Path(os.path.join(self.cfg.data_dir, '*.pt'))
 		fps = sorted(glob(str(fp)))
 		assert len(fps) > 0, f'No data found at {fp}'
-		print(f'Found {len(fps)} files in {fp}')
+		LOG.info(f'Found {len(fps)} files in {fp}')
 		if len(fps) < (20 if self.cfg.task == 'mt80' else 4):
-			print(f'WARNING: expected 20 files for mt80 task set, 4 files for mt30 task set, found {len(fps)} files.')
+			LOG.warning(f'Expected 20 files for mt80 task set, 4 files for mt30 task set, found {len(fps)} files.')
 	
 		# Create buffer for sampling
 		_cfg = deepcopy(self.cfg)
@@ -62,7 +64,7 @@ class OfflineTrainer(Trainer):
 			self.buffer.load(td)
 		expected_episodes = _cfg.buffer_size // _cfg.episode_length
 		if self.buffer.num_eps != expected_episodes:
-			print(f'WARNING: buffer has {self.buffer.num_eps} episodes, expected {expected_episodes} episodes for {self.cfg.task} task set.')
+			LOG.warning(f'Buffer has {self.buffer.num_eps} episodes, expected {expected_episodes} episodes for {self.cfg.task} task set.')
 
 	def train(self):
 		"""Train a TD-MPC2 agent."""
@@ -70,7 +72,7 @@ class OfflineTrainer(Trainer):
 			'Offline training only supports multitask training with mt30 or mt80 task sets.'
 		self._load_dataset()
 		
-		print(f'Training agent for {self.cfg.steps} iterations...')
+		LOG.info(f'Training agent for {self.cfg.steps} iterations...')
 		metrics = {}
 		for i in range(self.cfg.steps):
 

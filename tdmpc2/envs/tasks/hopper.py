@@ -1,4 +1,5 @@
 import os
+import logging
 
 from dm_control import mujoco
 from dm_control.rl import control
@@ -7,6 +8,8 @@ from dm_control.suite import hopper
 from dm_control.utils import rewards
 from dm_control.utils import io as resources
 import numpy as np
+
+LOG = logging.getLogger(__name__)
 
 _TASKS_DIR = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'tasks')
 
@@ -111,4 +114,4 @@ if __name__ == '__main__':
 	obs = env.reset()
 	import numpy as np
 	next_obs, reward, done, info = env.step(np.zeros(2))
-	print(reward)
+	LOG.info(reward)

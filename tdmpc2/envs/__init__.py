@@ -5,6 +5,8 @@ import warnings
 import logging
 logging.getLogger("gymnasium").setLevel(logging.ERROR)
 
+LOG = logging.getLogger(__name__)
+
 from envs.wrappers.multitask import MultitaskWrapper
 from envs.wrappers.tensor import TensorWrapper
 
@@ -40,7 +42,7 @@ def make_multitask_env(cfg):
 	"""
 	Make a multi-task environment for TD-MPC2 experiments.
 	"""
-	print('Creating multi-task environment with tasks:', cfg.tasks)
+	LOG.info('Creating multi-task environment with tasks:', cfg.tasks)
 	envs = []
 	for task in cfg.tasks:
 		_cfg = deepcopy(cfg)

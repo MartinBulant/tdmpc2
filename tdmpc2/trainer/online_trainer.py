@@ -1,9 +1,11 @@
-from time import time
-
-import numpy as np
 import torch
+import logging
+import numpy as np
 from tensordict.tensordict import TensorDict
 from trainer.base import Trainer
+from time import time
+
+LOG = logging.getLogger(__name__)
 
 
 class OnlineTrainer(Trainer):
@@ -118,7 +120,7 @@ class OnlineTrainer(Trainer):
 			if self._step >= self.cfg.seed_steps:
 				if self._step == self.cfg.seed_steps:
 					num_updates = self.cfg.seed_steps
-					print('Pretraining agent on seed data...')
+					LOG.info('Pretraining agent on seed data...')
 				else:
 					num_updates = 1
 				for _ in range(num_updates):
