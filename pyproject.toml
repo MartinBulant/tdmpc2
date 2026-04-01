@@ -1,0 +1,28 @@
+[project]
+name = "tdmpc2"
+version = "0.1.0"
+description = "TD-MPC2 integration"
+requires-python = ">=3.12"
+
+dependencies = [
+    "torch==2.7.1",
+    "torchvision",
+    "tensordict",
+    "torchrl",
+    "gymnasium",
+    "dm-control",
+    "mujoco",
+    "numpy",
+    "pandas",
+    "tqdm",
+    "hydra-core",
+    "hydra-submitit-launcher",
+    "omegaconf",
+    "wandb",
+    "imageio",
+    "imageio-ffmpeg",
+    "moviepy",
+    "glfw",
+    "h5py",
+    "termcolor"
+]

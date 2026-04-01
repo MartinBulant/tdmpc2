@@ -1,0 +1,23 @@
+--index-url https://download.pytorch.org/whl/cu126
+--extra-index-url https://pypi.org/simple
+
+torch==2.7.1
+torchvision
+tensordict
+torchrl
+gymnasium
+dm-control
+mujoco
+numpy
+pandas
+tqdm
+hydra-core
+omegaconf
+wandb
+imageio
+imageio-ffmpeg
+moviepy
+glfw
+h5py
+termcolor
+hydra-submitit-launcher
