@@ -87,6 +87,9 @@ class OnlineTrainer(Trainer):
 					self.logger.log(eval_metrics, 'eval')
 					eval_next = False
 
+					if self.cfg.save_eval_checkpoints:
+						self.logger.save_agent(self.agent, f"checkpoint_{self._step}")
+     
 				if self._step > 0:
 					if info['terminated'] and not self.cfg.episodic:
 						raise ValueError('Termination detected but you are not in episodic mode. ' \
