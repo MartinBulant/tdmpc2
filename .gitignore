@@ -133,3 +133,4 @@ dmypy.json
 venv
 logs
 .vscode
+private
