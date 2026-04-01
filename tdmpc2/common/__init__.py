@@ -33,7 +33,7 @@ TASK_SET = {
 		# 11 custom dmcontrol tasks
 		'walker-walk-backwards', 'walker-run-backwards', 'cheetah-run-backwards', 'cheetah-run-front', 'cheetah-run-back',
 		'cheetah-jump', 'hopper-hop-backwards', 'reacher-three-easy', 'reacher-three-hard', 'cup-spin',
-		'pendulum-spin',
+		'pendulum-spin', 'manipulator-bring-ball'
 	],
 	'mt80': [
 		# 19 original dmcontrol tasks
