@@ -39,8 +39,8 @@ class TDMPC2(torch.nn.Module):
 		self.discount = torch.tensor(
 			[self._get_discount(ep_len) for ep_len in cfg.episode_lengths], device='cuda:0'
 		) if self.cfg.multitask else self._get_discount(cfg.episode_length)
-		LOG.info('Episode length:', cfg.episode_length)
-		LOG.info('Discount factor:', self.discount)
+		LOG.info(f'Episode length: {cfg.episode_length}')
+		LOG.info(f'Discount factor: {self.discount}')
 		self._prev_mean = torch.nn.Buffer(torch.zeros(self.cfg.horizon, self.cfg.action_dim, device=self.device))
 		if cfg.compile:
 			LOG.info('Compiling update function with torch.compile...')
@@ -233,7 +233,7 @@ class TDMPC2(torch.nn.Module):
 		self.pi_optim.step()
 		self.pi_optim.zero_grad(set_to_none=True)
 
-		info = TensorDict({
+		info = self._create_tensordict({
 			"pi_loss": pi_loss,
 			"pi_grad_norm": pi_grad_norm,
 			"pi_entropy": info["entropy"],
@@ -259,6 +259,9 @@ class TDMPC2(torch.nn.Module):
 		action, _ = self.model.pi(next_z, task)
 		discount = self.discount[task].unsqueeze(-1) if self.cfg.multitask else self.discount
 		return reward + discount * (1-terminated) * self.model.Q(next_z, action, task, return_type='min', target=True)
+
+	def _create_tensordict(self, input_dict, batch_size = None) -> TensorDict:
+		return TensorDict(input_dict, batch_size=batch_size)
 
 	def _update(self, obs, action, reward, terminated, task=None):
 		# Compute targets
@@ -321,7 +324,7 @@ class TDMPC2(torch.nn.Module):
 
 		# Return training statistics
 		self.model.eval()
-		info = TensorDict({
+		info = self._create_tensordict({
 			"consistency_loss": consistency_loss,
 			"reward_loss": reward_loss,
 			"value_loss": value_loss,
@@ -329,8 +332,11 @@ class TDMPC2(torch.nn.Module):
 			"total_loss": total_loss,
 			"grad_norm": grad_norm,
 		})
+
 		if self.cfg.episodic:
-			info.update(math.termination_statistics(torch.sigmoid(termination_pred[-1]), terminated[-1]))
+			ts = math.termination_statistics(torch.sigmoid(termination_pred[-1]), terminated[-1])
+			info.update(ts)
+   
 		info.update(pi_info)
 		return info.detach().mean()
 

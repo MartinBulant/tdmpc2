@@ -7,7 +7,6 @@ setup_env()
 warnings.filterwarnings('ignore')
 import torch
 
-from termcolor import colored
 
 from common.parser import parse_cfg
 from common.seed import set_seed
@@ -51,7 +50,7 @@ def train(cfg: dict):
 	assert cfg.steps > 0, 'Must train for at least 1 step.'
 	cfg = parse_cfg(cfg)
 	set_seed(cfg.seed)
-	LOG.info(colored('Work dir:', 'yellow', attrs=['bold']), cfg.work_dir)
+	LOG.info(f"Work dir: {cfg.work_dir}")
 
 	trainer_cls = OfflineTrainer if cfg.multitask else OnlineTrainer
 	trainer = trainer_cls(

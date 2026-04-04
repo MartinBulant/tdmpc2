@@ -11,7 +11,7 @@ class Trainer:
 		self.agent = agent
 		self.buffer = buffer
 		self.logger = logger
-		LOG.info("Architecture:", self.agent.model)
+		LOG.info(f"Architecture: {self.agent.model}")
 
 	def eval(self):
 		"""Evaluate a TD-MPC2 agent."""
