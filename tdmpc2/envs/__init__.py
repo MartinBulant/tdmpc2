@@ -7,8 +7,8 @@ logging.getLogger("gymnasium").setLevel(logging.ERROR)
 
 LOG = logging.getLogger(__name__)
 
-from envs.wrappers.multitask import MultitaskWrapper
-from envs.wrappers.tensor import TensorWrapper
+from tdmpc2.envs.wrappers.multitask import MultitaskWrapper
+from tdmpc2.envs.wrappers.tensor import TensorWrapper
 
 def missing_dependencies(task):
 	raise ValueError(f'Missing dependencies for task {task}; install dependencies to use this environment.')

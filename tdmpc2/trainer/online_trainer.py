@@ -2,7 +2,7 @@ import torch
 import logging
 import numpy as np
 from tensordict.tensordict import TensorDict
-from trainer.base import Trainer
+from tdmpc2.trainer.base import Trainer
 from time import time
 
 LOG = logging.getLogger(__name__)
@@ -32,7 +32,7 @@ class OnlineTrainer(Trainer):
 		ep_rewards, ep_successes, ep_lengths = [], [], []
 		for i in range(self.cfg.eval_episodes):
 			obs, done, ep_reward, t = self.env.reset(), False, 0, 0
-			if self.cfg.save_video:
+			if self.cfg.save_video and self.logger is not None:
 				self.logger.video.init(self.env, enabled=(i==0))
 			while not done:
 				torch.compiler.cudagraph_mark_step_begin()
@@ -86,10 +86,11 @@ class OnlineTrainer(Trainer):
 				if eval_next:
 					eval_metrics = self.eval()
 					eval_metrics.update(self.common_metrics())
+     
 					self.logger.log(eval_metrics, 'eval')
 					eval_next = False
 
-					if self.cfg.save_eval_checkpoints:
+					if self.cfg.save_eval_checkpoints and self.logger is not None:
 						self.logger.save_agent(self.agent, f"checkpoint_{self._step}")
      
 				if self._step > 0:
@@ -101,8 +102,8 @@ class OnlineTrainer(Trainer):
 						episode_success=info['success'],
 						episode_length=len(self._tds),
 						episode_terminated=info['terminated'])
-					train_metrics.update(self.common_metrics())
-					self.logger.log(train_metrics, 'train')
+					train_metrics.update(self.common_metrics())	
+					self.logger.log(train_metrics, 'train') 
 					self._ep_idx = self.buffer.add(torch.cat(self._tds))
 
 				obs = self.env.reset()
@@ -129,4 +130,5 @@ class OnlineTrainer(Trainer):
 
 			self._step += 1
 
-		self.logger.finish(self.agent)
+		if self.logger is not None:
+			self.logger.finish(self.agent)

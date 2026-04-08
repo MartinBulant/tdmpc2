@@ -3,10 +3,10 @@ import torch.nn.functional as F
 import logging
 
 
-from common import math
-from common.scale import RunningScale
-from common.world_model import WorldModel
-from common.layers import api_model_conversion
+from tdmpc2.common import math
+from tdmpc2.common.scale import RunningScale
+from tdmpc2.common.world_model import WorldModel
+from tdmpc2.common.layers import api_model_conversion
 from tensordict import TensorDict
 
 LOG = logging.getLogger(__name__)

@@ -7,7 +7,7 @@ import numpy as np
 import pandas as pd
 
 from termcolor import colored
-from common import TASK_SET
+from tdmpc2.common import TASK_SET
 
 LOG = logging.getLogger(__name__)
 
@@ -48,7 +48,7 @@ def print_run(cfg):
 
 	def _pprint(k, v):
 		LOG.info(
-			prefix + colored(f'{k.capitalize()+":":<15}', color, attrs=attrs), _limstr(v)
+			f"{prefix} {colored(f'{k.capitalize()+":":<15}', color, attrs=attrs)} {_limstr(v)}"
 		)
 
 	observations  = ", ".join([str(v) for v in cfg.obs_shape.values()])
@@ -100,7 +100,7 @@ class VideoRecorder:
 		if self.enabled and len(self.frames) > 0:
 			frames = np.stack(self.frames)
 			return self._wandb.log(
-				{key: self._wandb.Video(frames.transpose(0, 3, 1, 2), fps=self.fps, format='mp4')}, step=step
+				{key: self._wandb.Video(frames, fps=self.fps, format='mp4')}, step=step
 			)
 
 
@@ -116,8 +116,8 @@ class Logger:
 		self._seed = cfg.seed
 		self._eval = []
 		print_run(cfg)
-		self.project = cfg.get("wandb_project", "none")
-		self.entity = cfg.get("wandb_entity", "none")
+		self.project = cfg.wandb_project
+		self.entity = cfg.wandb_entity
 		if not cfg.enable_wandb or self.project == "none" or self.entity == "none":
 			LOG.info(colored("Wandb disabled.", "blue", attrs=["bold"]))
 			cfg.save_agent = False
@@ -128,15 +128,16 @@ class Logger:
 		os.environ["WANDB_SILENT"] = "true" if cfg.wandb_silent else "false"
 		import wandb
 
-		wandb.init(
-			project=self.project,
-			entity=self.entity,
-			name=str(cfg.seed),
-			group=self._group,
-			tags=cfg_to_group(cfg, return_list=True) + [f"seed:{cfg.seed}"],
-			dir=self._log_dir,
-			config=dataclasses.asdict(cfg),
-		)
+		if wandb.run is None:
+			wandb.init(
+				project=self.project,
+				entity=self.entity,
+				name=str(cfg.seed),
+				group=self._group,
+				tags=cfg_to_group(cfg, return_list=True) + [f"seed:{cfg.seed}"],
+				dir=self._log_dir,
+				config=dataclasses.asdict(cfg),
+			)
 		LOG.info(colored("Logs will be synced with wandb.", "blue", attrs=["bold"]))
 		self._wandb = wandb
 		self._video = (
