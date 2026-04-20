@@ -19,7 +19,7 @@ class MuJoCoWrapper(gym.Wrapper):
 
 	def reset(self):
 		self._cumulative_reward = 0
-		return self.env.reset()[0]
+		return self.env.reset()
 
 	def step(self, action):
 		obs, reward, terminated, truncated, info = self.env.step(action.copy())

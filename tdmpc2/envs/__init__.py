@@ -9,6 +9,7 @@ LOG = logging.getLogger(__name__)
 
 from tdmpc2.envs.wrappers.multitask import MultitaskWrapper
 from tdmpc2.envs.wrappers.tensor import TensorWrapper
+from tdmpc2.envs.wrappers.vectorized import Vectorized
 
 def missing_dependencies(task):
 	raise ValueError(f'Missing dependencies for task {task}; install dependencies to use this environment.')
@@ -71,10 +72,14 @@ def make_env(cfg):
 		for fn in [make_dm_control_env, make_maniskill_env, make_metaworld_env, make_myosuite_env, make_mujoco_env]:
 			try:
 				env = fn(cfg)
+				break
 			except ValueError:
 				pass
 		if env is None:
 			raise ValueError(f'Failed to make environment "{cfg.task}": please verify that dependencies are installed and that the task exists.')
+		
+		assert cfg.num_envs == 1 or cfg.get('obs', 'state') == 'state', 'Vectorized environments only support state observations.'
+		env = Vectorized(cfg, fn)
 		env = TensorWrapper(env)
 	try: # Dict
 		cfg.obs_shape = {k: v.shape for k, v in env.observation_space.spaces.items()}
@@ -83,5 +88,5 @@ def make_env(cfg):
   
 	cfg.action_dim = env.action_space.shape[0]
 	cfg.episode_length = env.env.max_episode_steps
-	cfg.seed_steps = max(1000, 5*cfg.episode_length)
+	cfg.seed_steps = max(1000, 5*cfg.episode_length) * cfg.num_envs
 	return env
