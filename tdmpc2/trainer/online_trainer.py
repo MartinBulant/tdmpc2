@@ -3,7 +3,7 @@ from time import time
 import torch
 import logging
 from tensordict.tensordict import TensorDict
-from trainer.base import Trainer
+from tdmpc2.trainer.base import Trainer
 
 LOG = logging.getLogger(__name__)
 

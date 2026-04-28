@@ -17,7 +17,7 @@ class MuJoCoWrapper(gym.Wrapper):
 		self.cfg = cfg
 		self._cumulative_reward = 0
 
-	def reset(self):
+	def reset(self, seed=None, options=None):
 		self._cumulative_reward = 0
 		return self.env.reset()
 
@@ -32,6 +32,14 @@ class MuJoCoWrapper(gym.Wrapper):
 	def unwrapped(self):
 		return self.env.unwrapped
 	
+	@property
+	def metadata(self):
+		return {}
+ 
+	@property
+	def max_episode_steps(self):
+		return self.cfg.episode_length
+ 
 	def render(self, **kwargs):
 		return self.env.render(**kwargs)
 

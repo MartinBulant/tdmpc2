@@ -30,6 +30,7 @@ class Vectorized(gym.Env):
 		self.observation_space = env.observation_space
 		self.action_space = env.action_space
 		self.max_episode_steps = env.max_episode_steps
+		env.close()
 
 	def rand_act(self):
 		return torch.rand((self.cfg.num_envs, *self.action_space.shape)) * 2 - 1
