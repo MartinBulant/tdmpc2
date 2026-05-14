@@ -31,13 +31,14 @@ class Vectorized(gym.Env):
 		self.action_space = env.action_space
 		self.max_episode_steps = env.max_episode_steps
 		env.close()
+		LOG.info("Vectorized wrapper was initialized.")
 
 	def rand_act(self):
 		return torch.rand((self.cfg.num_envs, *self.action_space.shape)) * 2 - 1
 
 	def reset(self):
-		obs, _ = self.env.reset()
-		return obs, {}
+		obs, info = self.env.reset()
+		return obs, info
 
 	def step(self, action):
 		return self.env.step(action)

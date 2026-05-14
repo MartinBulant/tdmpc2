@@ -270,7 +270,7 @@ class TDMPC2(torch.nn.Module):
 		return reward + discount * (1-terminated) * self.model.Q(next_z, action, task, return_type='min', target=True)
 
 	def _create_tensordict(self, input_dict, batch_size = None) -> TensorDict:
-		return TensorDict(input_dict, batch_size=batch_size)
+		return TensorDict(input_dict, batch_size=batch_size, device=self.device)
 
 	def _update(self, obs, action, reward, terminated, task=None):
 		# Compute targets
