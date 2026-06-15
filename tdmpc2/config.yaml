@@ -5,6 +5,7 @@ defaults:
 task: manipulator-bring-ball
 obs: state
 episodic: true
+num_envs: 1
 
 # evaluation
 checkpoint: ???
@@ -14,6 +15,7 @@ eval_freq: 50000
 # training
 steps: 1_000_000
 batch_size: 256
+steps_per_update: 1
 reward_coef: 0.1
 value_coef: 0.1
 termination_coef: 1
