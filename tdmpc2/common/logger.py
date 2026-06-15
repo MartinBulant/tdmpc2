@@ -106,12 +106,9 @@ class VideoRecorder:
 		T, N, H, W, C = frames.shape
 		frames = frames.reshape(N * T, H, W, C)
 		
-		print(frames.shape)
-  
 		if self.cfg.transpose_video:
 			frames = frames.transpose(0, 3, 1, 2)
 
-		print(frames.shape)
 		return self._wandb.log(
 			{key: self._wandb.Video(frames, fps=self.fps, format='mp4')}, step=step
 		)
