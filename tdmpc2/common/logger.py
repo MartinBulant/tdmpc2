@@ -1,5 +1,7 @@
 import os
 import re
+import wandb
+import torch
 import logging
 import datetime
 import dataclasses
@@ -242,12 +244,34 @@ class Logger:
 				xkey = "iteration"
 			_d = dict()
 			for k, v in d.items():
+				if k.startswith("_"):
+					continue
+ 
+				if isinstance(v, np.ndarray):
+					if v.ndim == 1 and v.size == 1:
+						v = v.item()
+					elif v.ndim == 1:
+						v = wandb.Histogram(v)
+					else:
+						v = v.tolist()
+				elif isinstance(v, torch.Tensor):
+					arr = v.cpu().numpy()
+					if arr.ndim == 1 and arr.size == 1:
+						v = arr.item()
+					elif arr.ndim == 1:
+						v = wandb.Histogram(arr)
+					else:
+						v = v.tolist()
+
 				_d[category + "/" + k] = v
 			self._wandb.log(_d, step=d[xkey])
 		if category == "eval" and self._save_csv:
 			keys = ["step", "episode_reward"]
-			self._eval.append(np.array([d[keys[0]], d[keys[1]]]))
-			pd.DataFrame(np.array(self._eval)).to_csv(
-				self._log_dir / "eval.csv", header=keys, index=None
-			)
+			step, episode_reward = d.get(keys[0]), d.get(keys[1])
+   
+			if step is not None and episode_reward is not None:
+				self._eval.append(np.array([step, episode_reward]))
+				pd.DataFrame(np.array(self._eval)).to_csv(
+					self._log_dir / "eval.csv", header=keys, index=None
+				)
 		self._print(d, category)
