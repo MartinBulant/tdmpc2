@@ -71,6 +71,7 @@ wandb_entity: excavator-project
 wandb_silent: false
 enable_wandb: true
 save_csv: true
+transpose_video: true
 
 # train checkpoints
 save_eval_checkpoints: false
