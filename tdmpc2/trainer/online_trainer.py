@@ -89,6 +89,8 @@ class OnlineTrainer(Trainer):
 					eval_metrics.update(self.common_metrics())
 					self.logger.log(eval_metrics, 'eval')
 					eval_next = False
+					if self._step > 0:
+						self.logger.save_agent(self.agent, identifier=f'Checkpoint_{self._step}')
 
 				if self._step > 0:
 					if info['terminated'].any() and not self.cfg.episodic:

@@ -172,7 +172,7 @@ class Logger:
 			agent.save(fp)
 			if self._wandb:
 				artifact = self._wandb.Artifact(
-					self._group + '-' + str(self._seed) + '-' + str(identifier),
+					str(identifier),
 					type='model',
 				)
 				artifact.add_file(fp)
