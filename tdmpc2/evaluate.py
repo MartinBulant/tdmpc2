@@ -14,7 +14,7 @@ from termcolor import colored
 from common.parser import parse_cfg
 from common.seed import set_seed
 from envs import make_env
-from tdmpc2 import TDMPC2
+from tdmpc2_model import TDMPC2
 
 torch.backends.cudnn.benchmark = True
 
@@ -72,33 +72,47 @@ def evaluate(cfg: dict):
 		os.makedirs(video_dir, exist_ok=True)
 	scores = []
 	tasks = cfg.tasks if cfg.multitask else [cfg.task]
-	for task_idx, task in enumerate(tasks):
-		if not cfg.multitask:
-			task_idx = None
-		ep_rewards, ep_successes = [], []
-		for i in range(cfg.eval_episodes):
-			obs, done, ep_reward, t = env.reset(task_idx=task_idx), False, 0, 0
+	
+	LOG.info("Starting evaluation...")
+	for _, task in enumerate(tasks):
+		if cfg.multitask:
+			raise NotImplementedError
+		ep_rewards, ep_successes, ep_lengths = [], [], []
+		n_eval_episodes = cfg.test_episodes // cfg.num_envs
+		for i in range(n_eval_episodes):
+			LOG.info(f"Eval iterations {i}/{n_eval_episodes}")
+			obs, done, ep_reward, t = env.reset(), torch.tensor(False), 0, 0
 			if cfg.save_video:
 				frames = [env.render()]
-			while not done:
-				action = agent.act(obs, t0=t==0, task=task_idx)
+			while not done.any():
+				torch.compiler.cudagraph_mark_step_begin()
+				action = agent.act(obs, t0=t==0, eval_mode=True)
 				obs, reward, done, info = env.step(action)
 				ep_reward += reward
 				t += 1
 				if cfg.save_video:
 					frames.append(env.render())
+			assert done.all(), 'Vectorized environments must reset all environments at once.'
 			ep_rewards.append(ep_reward)
 			ep_successes.append(info['success'])
+			ep_lengths.append(t)
 			if cfg.save_video:
 				imageio.mimsave(
 					os.path.join(video_dir, f'{task}-{i}.mp4'), frames, fps=15)
-		ep_rewards = np.mean(ep_rewards)
+		
+		ep_rewards_cat = torch.cat(ep_rewards) 
+		ep_rewards_mean = ep_rewards_cat.mean()
+		ep_rewards_median = ep_rewards_cat.median()
 		ep_successes = np.mean(ep_successes)
-		if cfg.multitask:
-			scores.append(ep_successes*100 if task.startswith('mw-') else ep_rewards/10)
-		LOG.info(colored(f'  {task:<22}' \
-			f'\tR: {ep_rewards:.01f}  ' \
-			f'\tS: {ep_successes:.02f}', 'yellow'))
+		episode_length = torch.tensor(ep_lengths, dtype=torch.float32).mean()
+		
+		LOG.info(
+			f"eval_reward_mean={ep_rewards_mean:.2f} "
+			f"eval_reward_std={ep_rewards_cat.std():.2f} "
+			f"eval_reward_median={ep_rewards_median:.2f} "
+			f"eval_episode_length_mean={episode_length:.1f}"
+		)
+  
 	if cfg.multitask:
 		LOG.info(colored(f'Normalized score: {np.mean(scores):.02f}', 'yellow', attrs=['bold']))
 
