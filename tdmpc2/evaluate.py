@@ -93,12 +93,20 @@ def evaluate(cfg: dict):
 				if cfg.save_video:
 					frames.append(env.render())
 			assert done.all(), 'Vectorized environments must reset all environments at once.'
+			
+			LOG.info(ep_reward)
+			frames = np.stack(frames)
+			frames = frames.transpose(1, 0, 2, 3, 4)
+			T, N, H, W, C = frames.shape
+			frames = frames.reshape(N * T, H, W, C)
 			ep_rewards.append(ep_reward)
 			ep_successes.append(info['success'])
 			ep_lengths.append(t)
 			if cfg.save_video:
+				video_path = os.path.join(video_dir, f'{task}-{i}.mp4')
 				imageio.mimsave(
-					os.path.join(video_dir, f'{task}-{i}.mp4'), frames, fps=15)
+					os.path.join(video_path), frames, fps=15)
+				LOG.info(f"Video saved to the path {video_path}")
 		
 		ep_rewards_cat = torch.cat(ep_rewards) 
 		ep_rewards_mean = ep_rewards_cat.mean()
@@ -118,4 +126,6 @@ def evaluate(cfg: dict):
 
 
 if __name__ == '__main__':
+	import multiprocessing as mp
+	mp.set_start_method('spawn', force=True)
 	evaluate()
